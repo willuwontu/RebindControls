@@ -17,11 +17,20 @@
     <Reference Include="InControl">
       <HintPath>..\..\..\Visual Studio 2019\Projects\Rounds\Dependencies\InControl.dll</HintPath>
     </Reference>
+    <Reference Include="PhotonUnityNetworking">
+      <HintPath>..\..\..\Visual Studio 2019\Projects\Rounds\Dependencies\PhotonUnityNetworking.dll</HintPath>
+    </Reference>
     <Reference Include="UnboundLib">
       <HintPath>..\..\..\Visual Studio 2019\Projects\Rounds\Dependencies\UnboundLib.dll</HintPath>
     </Reference>
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>..\..\..\Visual Studio 2019\Projects\Rounds\Dependencies\Unity.TextMeshPro.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine">
       <HintPath>..\..\..\Visual Studio 2019\Projects\Rounds\Dependencies\UnityEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.AssetBundleModule">
+      <HintPath>..\..\..\Visual Studio 2019\Projects\Rounds\Dependencies\UnityEngine.AssetBundleModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>..\..\..\Visual Studio 2019\Projects\Rounds\Dependencies\UnityEngine.CoreModule.dll</HintPath>
