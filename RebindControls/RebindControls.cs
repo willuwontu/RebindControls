@@ -37,6 +37,7 @@ namespace RebindControls
         private GameObject containerFrameAsset;
         private GameObject keyGroupAsset;
         private GameObject bindingButtonAsset;
+        public bool defaultIsSetup = false;
 
         void Awake()
         {
@@ -87,6 +88,9 @@ namespace RebindControls
                 keyboardPlayer.ListenOptions.MaxAllowedBindings = 1U;
                 keyboardPlayer.ListenOptions.UnsetDuplicateBindingsOnSet = true;
                 keyboardPlayer.ListenOptions.IncludeMouseButtons = true;
+                keyboardPlayer.ListenOptions.OnBindingFound = null;
+                keyboardPlayer.ListenOptions.OnBindingRejected = null;
+                keyboardPlayer.ListenOptions.OnBindingAdded = null;
                 keyboardPlayer.ListenOptions.OnBindingFound += OnBindingFound;
                 keyboardPlayer.ListenOptions.OnBindingRejected += OnBindingRejectedMenu;
                 keyboardPlayer.ListenOptions.OnBindingAdded += OnBindingAdded;
@@ -97,10 +101,14 @@ namespace RebindControls
                 controllerPlayer.ListenOptions.IncludeUnknownControllers = true;
                 controllerPlayer.ListenOptions.MaxAllowedBindings = 3U;
                 controllerPlayer.ListenOptions.UnsetDuplicateBindingsOnSet = true;
+                controllerPlayer.ListenOptions.OnBindingFound = null;
+                controllerPlayer.ListenOptions.OnBindingRejected = null;
+                controllerPlayer.ListenOptions.OnBindingAdded = null;
                 controllerPlayer.ListenOptions.OnBindingFound += OnBindingFoundController;
                 controllerPlayer.ListenOptions.OnBindingRejected += OnBindingRejectedMenu;
                 controllerPlayer.ListenOptions.OnBindingAdded += OnBindingAdded;
             }
+            defaultIsSetup = true;
         }
 
         private void LoadAssets()
