@@ -38,6 +38,8 @@ namespace RebindControls
         private GameObject keyGroupAsset;
         private GameObject bindingButtonAsset;
         public bool defaultIsSetup = false;
+        public AudioClip click;
+        public AudioClip hover;
 
         void Awake()
         {
@@ -125,6 +127,8 @@ namespace RebindControls
             containerFrameAsset = UIAssets.LoadAsset<GameObject>("BindingGridFrame");
             keyGroupAsset = UIAssets.LoadAsset<GameObject>("KeyGroup");
             bindingButtonAsset = UIAssets.LoadAsset<GameObject>("Binding");
+            click = UIAssets.LoadAsset<AudioClip>("ui_button_click_01");
+            hover = UIAssets.LoadAsset<AudioClip>("ui_button_hover_01");
         }
 
         private void OnJoinedRoomAction()
@@ -186,7 +190,7 @@ namespace RebindControls
             }
         }
 
-        private GameObject CreateKeyBindingLayout(GameObject parent, PlayerActions bindings)
+        private GameObject CreateKeyBindingLayout(GameObject parent, PlayerActions actions)
         {
             if (parent.transform.Find("Group/Grid/Scroll View/Viewport/Content"))
             {
@@ -195,16 +199,85 @@ namespace RebindControls
 
             var container = GameObject.Instantiate(containerFrameAsset, parent.transform);
 
+            var grid = container.AddComponent<GridLayoutGroup>();
+
+            grid.cellSize = new Vector2(100, 100);
+
+            foreach (var action in actions.Actions)
+            {
+                CreateBindingFrame(container, action);
+            }
+
             return container;
+        }
+
+        private GameObject CreateBindingFrame(GameObject parent, PlayerAction action)
+        {
+            var keyGroup = GameObject.Instantiate(keyGroupAsset, parent.transform);
+            var text = keyGroup.transform.Find("KeyTitle/Title").gameObject.GetComponent<TextMeshProUGUI>();
+            text.text = action.Name;
+
+            var bindingGroup = keyGroup.transform.Find("Bindings").gameObject;
+
+            for (int i = 0; i < 3; i++)
+            {
+                CreateKeyBindButton(bindingGroup);
+            }
+
+
+            return keyGroup;
+        }
+
+        private GameObject CreateKeyBindButton(GameObject parent)
+        {
+            var bindButton = GameObject.Instantiate(bindingButtonAsset, parent.transform);
+
+            //var button = bindButton.GetComponent<Button>();
+
+            //bindButton.AddComponent<ButtonInteraction>();
+
+            return bindButton;
         }
     }
 
-    public class RightClick : MonoBehaviour, IPointerClickHandler
+    public class ButtonInteraction : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
     {
-
         public UnityEvent leftClick;
         public UnityEvent middleClick;
         public UnityEvent rightClick;
+        public UnityEvent mouseEnter;
+        public UnityEvent mouseExit;
+        public AudioSource source;
+        private static ButtonInteraction instance;
+
+        void Start()
+        {
+            instance = this;
+            source = gameObject.transform.parent.gameObject.GetOrAddComponent<AudioSource>();
+            source.Stop();
+
+            mouseEnter.AddListener(OnHover);
+            leftClick.AddListener(OnClick);
+        }
+
+        public void OnHover()
+        {
+            source.PlayOneShot(RebindControls.instance.hover);
+        }
+
+        public void OnClick()
+        {
+            source.PlayOneShot(RebindControls.instance.click);
+        }
+
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            mouseEnter.Invoke();
+        }
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            mouseExit.Invoke();
+        }
 
         public void OnPointerClick(PointerEventData eventData)
         {
