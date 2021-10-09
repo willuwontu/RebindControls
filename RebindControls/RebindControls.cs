@@ -16,8 +16,6 @@ namespace RebindControls
 {
     // These are the mods required for our mod to work
     [BepInDependency("com.willis.rounds.unbound", BepInDependency.DependencyFlags.HardDependency)]
-    [BepInDependency("pykess.rounds.plugins.moddingutils", BepInDependency.DependencyFlags.HardDependency)]
-    [BepInDependency("pykess.rounds.plugins.cardchoicespawnuniquecardpatch", BepInDependency.DependencyFlags.HardDependency)]
     // Declares our mod to Bepin
     [BepInPlugin(ModId, ModName, Version)]
     // The game our mod is associated with
@@ -33,11 +31,12 @@ namespace RebindControls
         private PlayerActions controllerPlayer;
         private ConfigEntry<string> keyboardBindingsConfig;
         private ConfigEntry<string> controllerBindingsConfig;
+        public bool defaultIsSetup = false;
+
         internal AssetBundle UIAssets;
         private GameObject containerFrameAsset;
         private GameObject keyGroupAsset;
         private GameObject bindingButtonAsset;
-        public bool defaultIsSetup = false;
         public AudioClip click;
         public AudioClip hover;
 
@@ -57,6 +56,8 @@ namespace RebindControls
             UnityEngine.Debug.Log($"[RebindControls] Initializing Default Controls");
             InitializeDefaultControls();
 
+            LoadAssets();
+
             UnityEngine.Debug.Log($"[RebindControls] Setting up config binds.");
             //Setup the BepInEx config binds
             {
@@ -65,9 +66,6 @@ namespace RebindControls
                 keyboardPlayer.Load(keyboardBindingsConfig.Value);
                 controllerPlayer.Load(controllerBindingsConfig.Value);
             }
-
-            UnityEngine.Debug.Log($"[RebindControls] Initializing loading of assets.");
-            LoadAssets();
 
             UnityEngine.Debug.Log($"[RebindControls] Registering Menu");
             Unbound.RegisterMenu(ModName, () => { }, this.MainGui, null, true);
@@ -87,7 +85,7 @@ namespace RebindControls
                 keyboardPlayer.ListenOptions.IncludeControllers = false;
                 keyboardPlayer.ListenOptions.IncludeNonStandardControls = false;
                 keyboardPlayer.ListenOptions.IncludeUnknownControllers = false;
-                keyboardPlayer.ListenOptions.MaxAllowedBindings = 1U;
+                keyboardPlayer.ListenOptions.MaxAllowedBindings = 3U;
                 keyboardPlayer.ListenOptions.UnsetDuplicateBindingsOnSet = true;
                 keyboardPlayer.ListenOptions.IncludeMouseButtons = true;
                 keyboardPlayer.ListenOptions.OnBindingFound = null;
@@ -126,7 +124,7 @@ namespace RebindControls
             UnityEngine.Debug.Log($"[RebindControls] Attempting to load assets.");
             containerFrameAsset = UIAssets.LoadAsset<GameObject>("BindingGridFrame");
             keyGroupAsset = UIAssets.LoadAsset<GameObject>("KeyGroup");
-            bindingButtonAsset = UIAssets.LoadAsset<GameObject>("Binding");
+            bindingButtonAsset = UIAssets.LoadAsset<GameObject>("KeyBindingGroup");
             click = UIAssets.LoadAsset<AudioClip>("ui_button_click_01");
             hover = UIAssets.LoadAsset<AudioClip>("ui_button_hover_01");
         }
@@ -171,23 +169,57 @@ namespace RebindControls
             Debug.Log("Binding rejected... " + reason);
         }
 
-        private void MainGui(GameObject menu)
+        private void ResetKeyboardLayout()
         {
-            MenuHandler.CreateText(ModName + " Options", menu, out TextMeshProUGUI _, 60);
-
-            CreateKeyBindingLayout(menu, keyboardPlayer);
 
         }
 
-        private void KeyboardGUI(GameObject menu)
+        private void ResetControllerLayout()
         {
-            MenuHandler.CreateText(ModName + " Options", menu, out TextMeshProUGUI _, 60);
 
-            foreach (var action in keyboardPlayer.Actions)
-            {
-                //MenuHandler.CreateText
-                MenuHandler.CreateButton("", menu);
-            }
+        }
+
+        private void MainGui(GameObject menu)
+        {
+            MenuHandler.CreateText("Keyboard Layout", menu, out TextMeshProUGUI _, 60);
+            var blah = CreateKeyBindingLayout(menu, keyboardPlayer);
+
+
+
+            MenuHandler.CreateText(" ", menu, out TextMeshProUGUI _, 70);
+
+            MenuHandler.CreateButton("Reset keyboard layout to default".ToUpper(), menu, ResetKeyboardLayout, 30);
+
+            MenuHandler.CreateText(" ", menu, out TextMeshProUGUI _, 70);
+
+            MenuHandler.CreateText("Controller Layout", menu, out TextMeshProUGUI _, 60);
+            var bleh = CreateKeyBindingLayout(menu, controllerPlayer);
+
+            MenuHandler.CreateText(" ", menu, out TextMeshProUGUI _, 70);
+
+            MenuHandler.CreateButton("Reset controller layout to default".ToUpper(), menu, ResetControllerLayout, 30);
+
+            MenuHandler.CreateText(" ", menu, out TextMeshProUGUI _, 70);
+        }
+
+        private void UpdateDisplayedBindings()
+        {
+
+        }
+
+        private void OnClearButtonPressed()
+        {
+
+        }
+
+        private void OnBindingButtonPressed()
+        {
+
+        }
+
+        private void OnResetButtonPressed()
+        {
+
         }
 
         private GameObject CreateKeyBindingLayout(GameObject parent, PlayerActions actions)
@@ -199,9 +231,9 @@ namespace RebindControls
 
             var container = GameObject.Instantiate(containerFrameAsset, parent.transform);
 
-            var grid = container.AddComponent<GridLayoutGroup>();
+            var grid = container.GetOrAddComponent<GridLayoutGroup>();
 
-            grid.cellSize = new Vector2(100, 100);
+            //grid.cellSize = new Vector2(100, 100);
 
             foreach (var action in actions.Actions)
             {
@@ -217,57 +249,125 @@ namespace RebindControls
             var text = keyGroup.transform.Find("KeyTitle/Title").gameObject.GetComponent<TextMeshProUGUI>();
             text.text = action.Name;
 
+            var reset = keyGroup.transform.Find("KeyTitle/Reset").gameObject;
+            var interact = reset.GetOrAddComponent<ButtonInteraction>();
+            interact.mouseClick.AddListener(OnResetButtonPressed);
+
             var bindingGroup = keyGroup.transform.Find("Bindings").gameObject;
 
             for (int i = 0; i < 3; i++)
             {
-                CreateKeyBindButton(bindingGroup);
+                CreateKeyBindButton(bindingGroup, (i < action.UnfilteredBindings.Count) ? action.UnfilteredBindings[i] : null);
             }
 
 
             return keyGroup;
         }
 
-        private GameObject CreateKeyBindButton(GameObject parent)
+        private GameObject CreateKeyBindButton(GameObject parent, BindingSource binding)
         {
-            var bindButton = GameObject.Instantiate(bindingButtonAsset, parent.transform);
+            var keyBindingGroup = GameObject.Instantiate(bindingButtonAsset, parent.transform);
+
+            var bindingButton = keyBindingGroup.transform.Find("Binding").gameObject;
+
+            var bindingText = bindingButton.transform.Find("Name").gameObject.GetComponent<TextMeshProUGUI>();
+
+            var clear = keyBindingGroup.transform.Find("Clear").gameObject;
+
+            var interact = bindingButton.GetOrAddComponent<ButtonInteraction>();
+            interact.mouseClick.AddListener(OnBindingButtonPressed);
+
+            interact = clear.GetOrAddComponent<ButtonInteraction>();
+            interact.mouseClick.AddListener(OnClearButtonPressed);
+
+            if (binding != null)
+            {
+                bindingText.text = binding.Name;
+            }
+            else
+            {
+                bindingText.text = "Not Set.";
+
+            }
 
             //var button = bindButton.GetComponent<Button>();
 
             //bindButton.AddComponent<ButtonInteraction>();
 
-            return bindButton;
+            return keyBindingGroup;
+        }
+    }
+
+    public class BindingInfo : MonoBehaviour
+    {
+        public BindingSource binding = null;
+        public PlayerAction action = null;
+        public int slot = 0;
+        public TextMeshProUGUI text;
+
+        public void Update()
+        {
+            if (action)
+            {
+                binding = slot < action.Bindings.Count ? action.Bindings[slot] : null;
+            }
+
+
+            if (text)
+            {
+                if (binding != null)
+                {
+                    text.text = binding.Name;
+                }
+                else if (action.IsListeningForBinding)
+                {
+                    text.text = "Not Set.";
+                }
+                else
+                {
+                    text.text = "Not Set.";
+                }
+            }
         }
     }
 
     public class ButtonInteraction : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
     {
-        public UnityEvent leftClick;
-        public UnityEvent middleClick;
-        public UnityEvent rightClick;
-        public UnityEvent mouseEnter;
-        public UnityEvent mouseExit;
+        public UnityEvent mouseClick = new UnityEvent();
+        public UnityEvent leftClick = new UnityEvent();
+        public UnityEvent middleClick = new UnityEvent();
+        public UnityEvent rightClick = new UnityEvent();
+        public UnityEvent mouseEnter = new UnityEvent();
+        public UnityEvent mouseExit = new UnityEvent();
         public AudioSource source;
-        private static ButtonInteraction instance;
+        public static ButtonInteraction instance;
 
         void Start()
         {
             instance = this;
-            source = gameObject.transform.parent.gameObject.GetOrAddComponent<AudioSource>();
-            source.Stop();
-
-            mouseEnter.AddListener(OnHover);
+            gameObject.GetOrAddComponent<AudioSource>();
+            mouseEnter.AddListener(OnEnter);
+            mouseExit.AddListener(OnExit);
             leftClick.AddListener(OnClick);
         }
 
-        public void OnHover()
+        public void OnEnter()
         {
+            UnityEngine.Debug.Log($"Button Enter");
+            source.PlayOneShot(RebindControls.instance.hover);
+        }
+
+        public void OnExit()
+        {
+            UnityEngine.Debug.Log($"Button Exit");
             source.PlayOneShot(RebindControls.instance.hover);
         }
 
         public void OnClick()
         {
+            UnityEngine.Debug.Log($"Button Clicked");
             source.PlayOneShot(RebindControls.instance.click);
+            //Destroy(gameObject);
         }
 
         public void OnPointerEnter(PointerEventData eventData)
@@ -287,6 +387,7 @@ namespace RebindControls
                 middleClick.Invoke();
             else if (eventData.button == PointerEventData.InputButton.Right)
                 rightClick.Invoke();
+            mouseClick.Invoke();
         }
     }
 }
