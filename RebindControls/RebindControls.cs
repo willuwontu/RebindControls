@@ -12,6 +12,7 @@ using InControl;
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using Photon.Pun;
 using TMPro;
 
 namespace RebindControls
@@ -60,7 +61,6 @@ namespace RebindControls
             UnityEngine.Debug.Log($"[RebindControls] Initializing Default Controls");
             keyboardPlayer = DefaultKeyboardLayout();
             controllerPlayer = DefaultControllersLayout();
-            setupDefault = true;
 
             LoadAssets();
 
@@ -71,15 +71,12 @@ namespace RebindControls
                 controllerBindingsConfig = Config.Bind("Controls", "Controller", controllerPlayer.Save(), "The control layout for a controller user.");
                 keyboardPlayer.Load(keyboardBindingsConfig.Value);
                 controllerPlayer.Load(controllerBindingsConfig.Value);
+                setupDefault = true;
             }
+
 
             UnityEngine.Debug.Log($"[RebindControls] Registering Menu");
             Unbound.RegisterMenu(ModName, () => { }, this.MainGui, null, true);
-
-            UnityEngine.Debug.Log($"[RebindControls] Adding network events.");
-            var networkEvents = gameObject.AddComponent<NetworkEventCallbacks>();
-            networkEvents.OnJoinedRoomEvent += OnJoinedRoomAction;
-            networkEvents.OnLeftRoomEvent += OnLeftRoomAction;
         }
 
         private PlayerActions DefaultKeyboardLayout()
@@ -148,16 +145,6 @@ namespace RebindControls
             bindingButtonAsset = UIAssets.LoadAsset<GameObject>("KeyBindingGroup");
             click = UIAssets.LoadAllAssets<AudioClip>().ToList().Where(clip => { /*UnityEngine.Debug.Log($"Checking the name of {clip}");*/ return clip.name.Contains("UI_Button_Click"); }).ToList();
             hover = UIAssets.LoadAllAssets<AudioClip>().ToList().Where(clip => { /*UnityEngine.Debug.Log($"Checking the name of {clip}");*/ return clip.name.Contains("UI_Button_Hover"); }).ToList();
-        }
-
-        private void OnJoinedRoomAction()
-        {
-
-        }
-
-        private void OnLeftRoomAction()
-        {
-
         }
 
         private void OnBindingAdded(PlayerAction action, BindingSource binding)

@@ -1,0 +1,13 @@
+{
+	"name":"RebindControls",
+	"author_name":"willuwontu",
+    "version_number":"1.0.0",
+	"website_url":"https://github.com/willuwontu/RebindControls",
+	"displayName":"Rebind Controls",
+	"description":"Allows players to change the control layout for the game.",
+	"dependencies": [
+	    "willis81808-UnboundLib-2.6.2",
+		"willis81808-MMHook-1.0.0",
+		"BepInEx-BepInExPack_ROUNDS-5.4.1100"
+	]
+}
