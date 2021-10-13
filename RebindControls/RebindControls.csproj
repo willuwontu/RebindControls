@@ -29,12 +29,6 @@
     <Reference Include="InControl">
       <HintPath>..\..\..\Visual Studio 2019\Projects\Rounds\Dependencies\InControl.dll</HintPath>
     </Reference>
-    <Reference Include="PhotonRealtime">
-      <HintPath>..\..\..\Visual Studio 2019\Projects\Rounds\Dependencies\PhotonRealtime.dll</HintPath>
-    </Reference>
-    <Reference Include="PhotonUnityNetworking">
-      <HintPath>..\..\..\Visual Studio 2019\Projects\Rounds\Dependencies\PhotonUnityNetworking.dll</HintPath>
-    </Reference>
     <Reference Include="UnboundLib">
       <HintPath>..\..\..\Visual Studio 2019\Projects\Rounds\Dependencies\UnboundLib.dll</HintPath>
     </Reference>

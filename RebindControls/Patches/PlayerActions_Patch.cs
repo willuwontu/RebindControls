@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using HarmonyLib;
+﻿using HarmonyLib;
 
 namespace RebindControls.Patches
 {
@@ -15,8 +12,10 @@ namespace RebindControls.Patches
         {
             if (RebindControls.instance.setupDefault)
             {
-                UnityEngine.Debug.Log("Default Keyboard layout has been setup already, attempting to substitute the player's layout instead.");
-                __result = RebindControls.instance.keyboardPlayer;
+                UnityEngine.Debug.Log("[RebindControls] Default Keyboard layout has been setup already, attempting to substitute the player's layout instead.");
+                PlayerActions temp = new PlayerActions();
+                temp.Load(RebindControls.instance.keyboardPlayer.Save());
+                __result = temp;
                 return false;
             }
             return true;
@@ -29,8 +28,10 @@ namespace RebindControls.Patches
         {
             if (RebindControls.instance.setupDefault)
             {
-                UnityEngine.Debug.Log("Default Controller layout has been setup already, attempting to substitute the player's layout instead.");
-                __result = RebindControls.instance.controllerPlayer;
+                UnityEngine.Debug.Log("[RebindControls] Default Controller layout has been setup already, attempting to substitute the player's layout instead.");
+                PlayerActions temp = new PlayerActions();
+                temp.Load(RebindControls.instance.controllerPlayer.Save());
+                __result = temp;
                 return false;
             }
             return true;
