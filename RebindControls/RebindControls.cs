@@ -75,6 +75,7 @@ namespace RebindControls
 
             UnityEngine.Debug.Log($"[RebindControls] Registering Menu");
             Unbound.RegisterMenu(ModName, () => { }, this.MainGui, null, true);
+            Unbound.RegisterClientSideMod(ModId);
         }
 
         /***********************************
