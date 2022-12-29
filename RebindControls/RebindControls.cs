@@ -25,13 +25,11 @@ namespace RebindControls
     {
         private const string ModId = "com.willuwontu.rounds.rebindcontrols";
         private const string ModName = "Rebind Controls";
-        public const string Version = "1.1.0"; // What version are we on (major.minor.patch)?
+        public const string Version = "1.1.1"; // What version are we on (major.minor.patch)?
 
         public static RebindControls instance { get; private set; }
         public PlayerActions keyboardPlayer;
         public PlayerActions controllerPlayer;
-        private ConfigEntry<string> keyboardBindingsConfig;
-        private ConfigEntry<string> controllerBindingsConfig;
         public bool setupDefault = false;
 
         internal AssetBundle UIAssets;
@@ -64,11 +62,13 @@ namespace RebindControls
 
             UnityEngine.Debug.Log($"[RebindControls] Setting up config binds.");
             //Setup the BepInEx config binds
-            {
-                keyboardBindingsConfig = Config.Bind("Controls", "Keyboard", keyboardPlayer.Save(), "The control layout for a keyboard and mouse user.");
-                controllerBindingsConfig = Config.Bind("Controls", "Controller", controllerPlayer.Save(), "The control layout for a controller user.");
-                keyboardPlayer.Load(keyboardBindingsConfig.Value);
-                controllerPlayer.Load(controllerBindingsConfig.Value);
+            {   
+                if(!PlayerPrefs.HasKey(ModId + "Keyboard"))
+                    PlayerPrefs.SetString(ModId +"Keyboard", keyboardPlayer.Save());
+                if(!PlayerPrefs.HasKey(ModId + "Controller"))
+                    PlayerPrefs.SetString(ModId +"Controller", controllerPlayer.Save());
+                keyboardPlayer.Load(PlayerPrefs.GetString(ModId + "Keyboard"));
+                controllerPlayer.Load(PlayerPrefs.GetString(ModId + "Controller"));
                 setupDefault = true;
             }
 
@@ -124,8 +124,8 @@ namespace RebindControls
             controllerPlayer.ListenOptions.OnBindingRejected -= OnBindingRejectedMenu;
             controllerPlayer.ListenOptions.OnBindingAdded -= OnBindingAdded;
 
-            keyboardBindingsConfig.Value = keyboardPlayer.Save();
-            controllerBindingsConfig.Value = controllerPlayer.Save();
+            PlayerPrefs.SetString(ModId + "Keyboard", keyboardPlayer.Save());
+            PlayerPrefs.SetString(ModId + "Controller", controllerPlayer.Save());
 
             keyboardPlayer.ListenOptions.OnBindingFound += OnBindingFoundKeyboard;
             keyboardPlayer.ListenOptions.OnBindingRejected += OnBindingRejectedMenu;
